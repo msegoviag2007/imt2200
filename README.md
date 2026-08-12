@@ -14,9 +14,9 @@ Por ahora, no hemos subido ningún archivo, actualizaremos esta sección a medid
 
 ### Nuestra información
 
-| Nombre                    | Github         | Email asociado                   |
-|---------------------------|----------------| ---------------------------------|
-| Martín Visciglio          | @MartinVL8     | martinviscigliolabarca@gmail.com |
-| Matías Heresmann          | @darthvython   | mh.heresmann@gmail.com           |
-| Benjamín Saez             | @benja3617     | benjamn.sez@estudiante.uc.cl     |
-| Matías Segovia            | @msegoviag2007 | msegoviag@estudiante.uc.cl       |
+| Nombre                    | Github                                             | Email asociado                   |
+|---------------------------|----------------------------------------------------| ---------------------------------|
+| Martín Visciglio          | [@MartinVL8](https://github.com/MartinVL8)         | martinviscigliolabarca@gmail.com |
+| Matías Heresmann          | [@darthvython](https://github.com/darthvython)     | mh.heresmann@gmail.com           |
+| Benjamín Saez             | [@benja3617](https://github.com/benja3617)         | benjamn.sez@estudiante.uc.cl     |
+| Matías Segovia            | [@msegoviag2007](https://github.com/msegoviag2007) | msegoviag@estudiante.uc.cl       |
