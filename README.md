@@ -3,7 +3,7 @@
 ## Información del repositorio
 
 ### ¿Para qué es este repositorio?
-En este repositorio recopilaremos de manera grupal los archivos que elaboremos durante el curso de Introducción a Ciencia de Datos, ya sean tareas, desarrollos o proyectos, nosotros somos parte de la sección 1 :)
+En este repositorio recopilaremos de manera grupal los archivos que elaboremos durante el curso de Introducción a Ciencia de Datos en su edición 2026-2. Ya sean tareas, desarrollos o proyectos, subiremos lo que consideremos necesario dentro de este repositorio, somos parte de la sección 1 y la única del curso :)
 
 ### Nuestra información
 | Nombre                    | Github         | Email asociado                   |
