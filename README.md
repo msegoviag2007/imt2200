@@ -8,7 +8,7 @@ En este repositorio recopilaremos de manera grupal los archivos que elaboremos d
 
 ### ¿Qué se encuentra en este repositorio?
 
-Por ahora, no hemos subido ningún archivo, actualizaremos esta sección a medida que vayamos subiendo cada archivo o tarea requerida por el curso.
+Por ahora, no hemos subido ningún archivo, actualizaremos esta sección a medida que vayamos subiendo cada archivo, avance, tarea o proyecto requerido por el curso.
 
 ## Acerca de nosotros
 
