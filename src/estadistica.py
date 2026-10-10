@@ -1,6 +1,7 @@
 """Funciones estadísticas usadas en el EDA."""
 import numpy as np
 import pandas as pd
+from scipy.stats.contingency import association
 
 from src.config import ELECTIVAS
 
@@ -36,30 +37,26 @@ def diagnostico_columnas(df: pd.DataFrame,
 
 
 def v_de_cramer(tabla: pd.DataFrame) -> float:
-    """V de Cramér de una tabla de contingencia (0 = independencia)."""
-    observado = tabla.to_numpy(dtype=float)
-    total = observado.sum()
-    esperado = (np.outer(observado.sum(axis=1), observado.sum(axis=0))
-                / total)
-    chi2 = ((observado - esperado) ** 2 / esperado).sum()
-    k = min(observado.shape) - 1
-    return float(np.sqrt(chi2 / (total * k)))
+    """V de Cramér de una tabla de contingencia (función de scipy).
+
+    Va de 0 (independencia) a 1 (asociación perfecta).
+    """
+    return float(association(tabla.to_numpy(), method='cramer'))
 
 
-def icc_anova(df: pd.DataFrame, variable: str, grupo: str) -> float:
-    """ICC(1) por ANOVA de una vía, con grupos de tamaño desigual."""
+def proporcion_varianza_entre(df: pd.DataFrame, variable: str,
+                              grupo: str) -> float:
+    """Proporción de la varianza de `variable` que ocurre entre `grupo`.
+
+    A cada estudiante se le asigna el promedio de su colegio; la varianza de
+    esos promedios dividida por la varianza total indica qué parte de las
+    diferencias se debe a en qué colegio está el estudiante. Es una versión
+    simple del ICC (lo sobreestima levemente cuando los colegios son
+    pequeños); el ICC exacto saldrá del modelo jerárquico.
+    """
     datos = df[[grupo, variable]].dropna()
-    agrupado = datos.groupby(grupo)[variable]
-    n_i = agrupado.size()
-    k, n_total = len(n_i), n_i.sum()
-    media_total = datos[variable].mean()
-    ss_entre = (n_i * (agrupado.mean() - media_total) ** 2).sum()
-    ss_dentro = ((datos[variable] - agrupado.transform('mean')) ** 2).sum()
-    ms_entre = ss_entre / (k - 1)
-    ms_dentro = ss_dentro / (n_total - k)
-    n0 = (n_total - (n_i ** 2).sum() / n_total) / (k - 1)
-    var_entre = max((ms_entre - ms_dentro) / n0, 0)
-    return var_entre / (var_entre + ms_dentro)
+    promedio_colegio = datos.groupby(grupo)[variable].transform('mean')
+    return promedio_colegio.var() / datos[variable].var()
 
 
 def correlaciones_anio(g: pd.DataFrame,

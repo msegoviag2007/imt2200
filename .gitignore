@@ -1,9 +1,10 @@
-# Datos: se descargan con 01_carga_y_limpieza.ipynb
-data/raw/*
+# Datos intermedios: los genera el proyecto (los CSV originales se leen
+# directo desde Google Drive y no se guardan)
 data/processed/*
-!data/raw/.gitkeep
 !data/processed/.gitkeep
-*.part
+
+# Entorno virtual
+.venv/
 
 # Python y Jupyter
 __pycache__/

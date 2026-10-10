@@ -9,7 +9,6 @@ from pathlib import Path
 # Rutas del proyecto
 # ---------------------------------------------------------------------------
 RAIZ: Path = Path(__file__).resolve().parents[1]
-DIR_DATOS_CRUDOS: Path = RAIZ / 'data' / 'raw'
 DIR_DATOS_PROCESADOS: Path = RAIZ / 'data' / 'processed'
 DIR_IMGS: Path = RAIZ / 'imgs'
 
@@ -17,7 +16,8 @@ ARCHIVO_PANEL: Path = DIR_DATOS_PROCESADOS / 'panel_completo.parquet'
 ARCHIVO_MUESTRA: Path = DIR_DATOS_PROCESADOS / 'muestra.parquet'
 
 # ---------------------------------------------------------------------------
-# Fuentes: CSV de datos abiertos del MINEDUC, copiados a Google Drive
+# Fuentes: CSV de datos abiertos del MINEDUC en Google Drive (se leen directo
+# desde ahí, sin guardar copias locales)
 # ---------------------------------------------------------------------------
 ANIOS: list[int] = [2026, 2025, 2024, 2023]
 
@@ -56,18 +56,25 @@ URL_DRIVE: str = ('https://drive.usercontent.google.com/download?id={}'
 # ---------------------------------------------------------------------------
 # Decisión 2: postulaciones
 # ---------------------------------------------------------------------------
-# Códigos inferidos de los conteos: 24 (~160 mil por año, uno por estudiante)
-# = seleccionado; 25 = lista de espera; 26 = preferencia eliminada por
-# selección en una preferencia anterior. VERIFICAR con el libro de códigos.
-ESTADO_SELECCIONADO: int = 24
-ESTADO_LISTA_ESPERA: int = 25
-ESTADOS_VALIDOS: set[int] = {ESTADO_SELECCIONADO, ESTADO_LISTA_ESPERA}
+# Códigos de ESTADO_PREF según el libro de códigos de Postulación 2026
+# (docs/libro_codigos_postulacion_2026.pdf, Anexo I): 24 = en lista de
+# seleccionados; 25 = en lista de espera; 26 = seleccionado en una
+# preferencia anterior. El resto son causales de postulación no válida.
+# Seleccionado: algún estado 24 o 26. El 26 implica haber quedado
+# seleccionado en una preferencia anterior; en PS-2023 hay 179 estudiantes
+# con 26 a los que les falta el registro del 24.
+ESTADOS_SELECCION: set[int] = {24, 26}
+# Postulación válida (efectiva, como la "P" de SITUACION_POSTULANTE):
+# seleccionado o en lista de espera.
+ESTADOS_VALIDOS: set[int] = ESTADOS_SELECCION | {25}
 
 COL_PREFERENCIA: str = 'ORDEN_PREF'
-COLUMNAS_PREF: set[str] = {
-    'ORDEN_PREF', 'COD_CARRERA_PREF', 'ESTADO_PREF', 'TIPO_PREF',
-    'PTJE_PREF', 'LUGAR_PREF',
-}
+# PS-2023 viene en formato ancho: para cada preferencia n (01 a 20) trae las
+# columnas COD_CARRERA_PREF_n, ESTADO_PREF_n, PTJE_PREF_n y LUGAR_PREF_n.
+N_PREFERENCIAS_ANCHO: int = 20
+COLUMNAS_PREF_ANCHO: list[str] = [
+    'COD_CARRERA_PREF', 'ESTADO_PREF', 'PTJE_PREF', 'LUGAR_PREF',
+]
 
 # ---------------------------------------------------------------------------
 # Decisión 4: tipos de datos
@@ -76,6 +83,7 @@ PRUEBAS: list[str] = ['CLEC', 'MATE1', 'MATE2', 'HCSOC', 'CIEN']
 COLUMNAS_NUMERICAS: list[str] = [
     'RBD', 'SEXO', 'ANYO_DE_EGRESO', 'PROMEDIO_NOTAS', 'PTJE_NEM',
     'PTJE_RANKING', 'DEPENDENCIA', 'INGRESO_PERCAPITA_GRUPO_FA',
+    'CODIGO_ENS',
 ] + [
     f'{prueba}_{tipo}_{proceso}'
     for prueba in PRUEBAS
@@ -109,8 +117,14 @@ PRUEBAS_PAES: dict[str, str] = {
     'CIEN': 'Ciencias',
 }
 
+# Códigos de enseñanza media para niños y jóvenes (libro de códigos de
+# Inscritos 2026, Anexo II). Los demás (x60 a x63 y 963) son educación de
+# adultos; quienes validan o reconocen estudios (H3, H4) no traen código.
+CODIGOS_ENS_REGULAR: list[int] = [310, 410, 510, 610, 710, 810, 910]
+
 COLUMNAS_EDA: list[str] = [
-    'MRUN', 'ANIO', 'RBD', 'DEPENDENCIA', 'RAMA_EDUCACIONAL', 'SEXO',
+    'MRUN', 'ANIO', 'RBD', 'CODIGO_ENS', 'DEPENDENCIA', 'RAMA_EDUCACIONAL',
+    'SEXO',
     'ANYO_DE_EGRESO', 'PROMEDIO_NOTAS', 'PTJE_NEM', 'PTJE_RANKING',
     'INGRESO_PERCAPITA_GRUPO_FA', 'postulo', 'postulacion_valida',
     'seleccionado', 'matriculado',
@@ -122,14 +136,15 @@ COLUMNAS_PANEL: list[str] = COLUMNAS_EDA + ['egresado_reciente'] + [
     f'{p}_{t}_ANTERIOR' for p in PRUEBAS_PAES for t in ('REG', 'INV')
 ]
 
-# Códigos de DEPENDENCIA (codificación MINEDUC). VERIFICAR con el diccionario.
+# Códigos de DEPENDENCIA según el libro de códigos de Inscritos 2026
+# (docs/libro_codigos_inscritos_2026.pdf, sección 1.2).
 DEPENDENCIA_ETIQUETAS: dict[int, str] = {
-    1: 'Municipal',             # Corporación municipal
-    2: 'Municipal',             # Municipal DAEM
-    3: 'Part. subvencionado',
-    4: 'Part. pagado',
-    5: 'Adm. delegada',
-    6: 'SLEP',                  # Servicio Local de Educación Pública
+    1: 'Municipal',             # Corporación Municipal
+    2: 'Municipal',             # Municipal
+    3: 'Part. subvencionado',   # Particular Subvencionado
+    4: 'Part. pagado',          # Particular Pagado
+    5: 'Adm. delegada',         # Corp. de Administración Delegada
+    6: 'SLEP',                  # Servicio Local de Educación (SLE)
 }
 ORDEN_DEPENDENCIA: list[str] = [
     'Municipal', 'SLEP', 'Part. subvencionado', 'Adm. delegada',
@@ -142,8 +157,9 @@ MODALIDAD_ETIQUETAS: dict[str, str] = {
 }
 ORDEN_DECIL: list[str] = [str(d) for d in range(1, 11)] + ['No responde']
 
-# RBD 99999 aparece como máximo en los 4 años: es un código, no un colegio.
-# VERIFICAR en el diccionario (suele indicar exámenes libres o extranjero).
+# RBD 99999: código no documentado en los libros de códigos 2026 (no es un
+# colegio). Son 12 casos en la muestra, excluidos por el filtro de educación
+# regular en establecimiento identificado.
 RBD_SIN_ESTABLECIMIENTO: int = 99999
 
 # Tamaños mínimos para no graficar promedios con muy pocas observaciones.

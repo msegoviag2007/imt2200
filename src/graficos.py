@@ -14,6 +14,8 @@ def aplicar_estilo() -> None:
         'grid.alpha': 0.3,
         'axes.spines.top': False,
         'axes.spines.right': False,
+        # Signo menos como guion normal (convención del proyecto).
+        'axes.unicode_minus': False,
     })
 
 

@@ -1,69 +1,49 @@
 """Limpieza y unificación de las tablas (Decisiones 2 a 6 del notebook 01)."""
-import re
-
 import numpy as np
 import pandas as pd
 
 from src.config import (CODIGO_NO_RESPONDE_INGRESO, COL_PREFERENCIA,
-                        COLUMNAS_NUMERICAS, COLUMNAS_PREF, EGRESO_OFFSET,
-                        ESTADO_SELECCIONADO, ESTADOS_VALIDOS)
-
-# Nombre que termina en número de preferencia: ESTADO_PREF_01, PTJE_PREF3...
-PATRON_ANCHO = re.compile(r'^(.+?)_?(\d{1,2})$')
+                        COLUMNAS_NUMERICAS, COLUMNAS_PREF_ANCHO,
+                        EGRESO_OFFSET, ESTADOS_SELECCION, ESTADOS_VALIDOS,
+                        N_PREFERENCIAS_ANCHO)
 
 
 # ---------------------------------------------------------------------------
 # Decisión 2: postulaciones a una fila por estudiante
 # ---------------------------------------------------------------------------
-def a_formato_largo(df_ps: pd.DataFrame, anio: int,
-                    verbose: bool = True) -> pd.DataFrame:
-    """Devuelve PS con una fila por preferencia, sea cual sea su formato.
+def a_formato_largo(df_ps: pd.DataFrame, anio: int) -> pd.DataFrame:
+    """Devuelve PS con una fila por preferencia.
 
-    PS 2024-2026 viene en formato largo (una fila por preferencia); PS 2023
-    viene en formato ancho (ESTADO_PREF_01 ... ESTADO_PREF_20).
+    PS 2024-2026 ya viene en formato largo (una fila por preferencia). PS 2023
+    viene en formato ancho: una fila por estudiante con las columnas
+    ESTADO_PREF_01 ... ESTADO_PREF_20 (y lo mismo para COD_CARRERA_PREF,
+    PTJE_PREF y LUGAR_PREF). Para pasarlo a largo se toma una preferencia a
+    la vez, se le quita el sufijo _nn a sus columnas y se apilan las 20.
     """
     if 'ESTADO_PREF' in df_ps.columns:
-        if verbose:
-            print(f'PS-{anio}: formato largo ({len(df_ps)} filas)')
+        print(f'PS-{anio}: formato largo ({len(df_ps)} filas)')
         return df_ps
 
-    # Agrupa las columnas numeradas por su nombre base.
-    numeradas: dict[str, tuple[str, int]] = {}
-    for col in df_ps.columns:
-        coincide = PATRON_ANCHO.match(col)
-        if coincide:
-            base = coincide.group(1).rstrip('_')
-            if base not in COLUMNAS_PREF and f'{base}_PREF' in COLUMNAS_PREF:
-                base = f'{base}_PREF'           # p. ej. ESTADO_01 -> ESTADO
-            numeradas[col] = (base, int(coincide.group(2)))
-    # Solo cuentan como formato ancho las bases que se repiten 2+ veces.
-    conteo = pd.Series([b for b, _ in numeradas.values()]).value_counts()
-    bases = set(conteo[conteo > 1].index)
-    numeradas = {c: v for c, v in numeradas.items() if v[0] in bases}
+    # Columnas numeradas (las de las 20 preferencias) y columnas comunes.
+    numeradas = [f'{base}_{n:02d}'
+                 for n in range(1, N_PREFERENCIAS_ANCHO + 1)
+                 for base in COLUMNAS_PREF_ANCHO]
+    comunes = [c for c in df_ps.columns if c not in numeradas]
 
-    if 'ESTADO_PREF' not in bases:
-        candidatas = [c for c in df_ps.columns if 'ESTADO' in c or 'PREF' in c]
-        raise KeyError(f'PS-{anio} no tiene ESTADO_PREF ni ESTADO_PREF_n. '
-                       f'Columnas candidatas: {candidatas[:15]}')
-
-    ids = [c for c in df_ps.columns if c not in numeradas]
     partes = []
-    for numero in sorted({n for _, n in numeradas.values()}):
-        renombre = {c: b for c, (b, n) in numeradas.items() if n == numero}
-        parte = df_ps[ids + list(renombre)].rename(columns=renombre)
-        if COL_PREFERENCIA not in bases:
-            parte[COL_PREFERENCIA] = numero
+    for n in range(1, N_PREFERENCIAS_ANCHO + 1):
+        # Ej.: para n = 3, ESTADO_PREF_03 pasa a llamarse ESTADO_PREF.
+        renombre = {f'{base}_{n:02d}': base for base in COLUMNAS_PREF_ANCHO}
+        parte = df_ps[comunes + list(renombre)].rename(columns=renombre)
+        parte[COL_PREFERENCIA] = n
         partes.append(parte)
     largo = pd.concat(partes, ignore_index=True)
 
-    # Quita las preferencias vacías: en 2023 vienen con ESTADO_PREF = 0.
-    largo = largo.dropna(subset=sorted(bases - {COL_PREFERENCIA}), how='all')
+    # Las preferencias vacías vienen con ESTADO_PREF = 0: se eliminan.
     estado = pd.to_numeric(largo['ESTADO_PREF'], errors='coerce')
-    largo = largo[(estado.isna() | (estado != 0))
-                  & largo['ESTADO_PREF'].notna()]
-    if verbose:
-        print(f'PS-{anio}: formato ancho ({len(df_ps)} filas) -> '
-              f'largo ({len(largo)} filas)')
+    largo = largo[estado.notna() & (estado != 0)]
+    print(f'PS-{anio}: formato ancho ({len(df_ps)} filas) -> '
+          f'largo ({len(largo)} filas)')
     return largo
 
 
@@ -82,7 +62,7 @@ def unificar_codigos(df_ps: pd.DataFrame) -> pd.DataFrame:
 
 def resumir_postulacion(df_ps: pd.DataFrame,
                         estados_validos: set[int] = ESTADOS_VALIDOS,
-                        estado_seleccionado: int = ESTADO_SELECCIONADO
+                        estados_seleccion: set[int] = ESTADOS_SELECCION
                         ) -> pd.DataFrame:
     """Reduce la tabla de postulación a una fila por MRUN.
 
@@ -103,7 +83,9 @@ def resumir_postulacion(df_ps: pd.DataFrame,
     resumen = pd.concat([mejor_valida, mejor_invalida], ignore_index=True)
     # 'seleccionado' se calcula aparte: la mejor preferencia válida puede ser
     # una lista de espera ubicada sobre la preferencia en que quedó.
-    seleccionados = df.loc[df['ESTADO_PREF'] == estado_seleccionado, 'MRUN']
+    # Cuenta como seleccionado quien tenga algún estado 24 o 26.
+    en_seleccion = df['ESTADO_PREF'].isin(estados_seleccion)
+    seleccionados = df.loc[en_seleccion, 'MRUN']
     resumen['seleccionado'] = resumen['MRUN'].isin(seleccionados)
     return resumen
 
@@ -122,10 +104,13 @@ def armar_panel(ip: pd.DataFrame, sd: pd.DataFrame,
     panel = ip.merge(sd, on='MRUN', how='left', suffixes=('', '_sd'))
     panel = panel.merge(ps_resumido, on='MRUN', how='left',
                         suffixes=('', '_ps'))
+    # Copia "ordenada" del panel: evita un aviso de rendimiento de pandas
+    # al agregarle varias columnas nuevas a una tabla tan ancha.
+    panel = panel.copy()
     panel['postulo'] = panel['MRUN'].isin(ps_resumido['MRUN'])
     # Quienes no postularon quedan como NaN tras el merge: pasan a False.
     for col in ['postulacion_valida', 'seleccionado']:
-        panel[col] = panel[col].eq(True)
+        panel[col] = panel[col].fillna(False).astype(bool)
     panel['matriculado'] = panel['MRUN'].isin(m['MRUN'])
     panel['ANIO'] = anio
     return panel
@@ -136,25 +121,26 @@ def armar_panel(ip: pd.DataFrame, sd: pd.DataFrame,
 # ---------------------------------------------------------------------------
 def forzar_numericas(panel: pd.DataFrame, columnas: list[str], anio: int,
                      verbose: bool = True) -> pd.DataFrame:
-    """Convierte columnas a numérico; lo no convertible queda como NaN."""
+    """Convierte columnas a numérico; lo no convertible queda como NaN.
+
+    Algunas columnas vienen como texto por celdas en blanco. En ese caso los
+    decimales vienen con coma, así que primero se cambia ',' por '.'.
+    """
     panel = panel.copy()
     for col in columnas:
         if col not in panel.columns:
             continue
-        original = panel[col]
-        if pd.api.types.is_numeric_dtype(original):
-            continue
-        # Si la columna quedó como texto, los decimales vienen con coma.
-        texto = original.astype('string').str.strip().str.replace(
-            ',', '.', regex=False)
-        # float64 (no Int64/Float64) para que los NaN no rompan los filtros.
-        convertida = pd.to_numeric(texto, errors='coerce').astype('float64')
-        perdidos = convertida.isna() & original.notna()
+        if pd.api.types.is_numeric_dtype(panel[col]):
+            continue  # ya es numérica
+        texto = panel[col].astype(str).str.replace(',', '.')
+        convertida = pd.to_numeric(texto, errors='coerce')
+        # Valores que existían pero no eran números (p. ej., espacios).
+        perdidos = convertida.isna() & panel[col].notna()
         if verbose and perdidos.any():
-            ejemplos = texto[perdidos].value_counts().head(3).index.tolist()
+            ejemplos = list(texto[perdidos].unique()[:3])
             print(f'{anio} | {col}: {perdidos.sum()} valores no numéricos '
                   f'-> NaN (ej.: {ejemplos})')
-        panel[col] = convertida
+        panel[col] = convertida.astype('float64')
     return panel
 
 
