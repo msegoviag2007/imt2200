@@ -7,13 +7,7 @@
 
 En este repositorio recopilaremos de manera grupal los archivos que elaboremos durante el curso de Introducción a Ciencia de Datos en su edición 2026-2. Ya sean tareas, desarrollos o proyectos, subiremos lo que consideremos necesario dentro de este repositorio, somos parte de la única sección del curso :)
 
-### ¿Qué se encuentra en este repositorio?
-
-Por ahora, no hemos subido ningún archivo, actualizaremos esta sección a medida que vayamos subiendo cada archivo, avance, tarea o proyecto requerido por el curso.
-
-## Acerca de nosotros
-
-### Nuestra información
+### Acerca de nosotros
 
 | Nombre                    | Github                                             | Email asociado                   |
 |---------------------------|----------------------------------------------------| ---------------------------------|
@@ -22,7 +16,7 @@ Por ahora, no hemos subido ningún archivo, actualizaremos esta sección a medid
 | Benjamín Saez             | [@benja3617](https://github.com/benja3617)         | benjamn.sez@estudiante.uc.cl     |
 | Matías Heresmann          | [@darthvython](https://github.com/darthvython)     | mh.heresmann@gmail.com           |
 ---
-## Proyecto semestral IMT2200: Introducción a la Ciencia de Datos 2026-2 · Grupo 6
+## Proyecto semestral IMT2200: Introducción a la Ciencia de Datos 2026-2 · Grupo 5
 
 
 Análisis de la brecha entre las notas de enseñanza media (NEM) y la PAES según la
@@ -68,22 +62,10 @@ Los notebooks se corren **en orden**; cada uno deja un archivo que usa el siguie
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate          # Windows (en macOS/Linux: source .venv/bin/activate)
+.venv\Scripts\activate       
 pip install -r requirements.txt
 jupyter lab notebooks/
 ```
-
-**Google Colab:** clonar el repositorio y trabajar desde la carpeta `notebooks/`:
-
-```python
-!git clone <URL-del-repositorio>
-%cd <nombre-del-repositorio>/notebooks
-```
-
-`01` lee los 16 CSV directo desde Google Drive en cada ejecución (no se guardan
-copias locales), por lo que la carga tarda algunos minutos. Los parámetros que el equipo puede cambiar (criterio de
-rendición, inclusión de quienes rinden ambas electivas, códigos de estado, etc.)
-están todos en `src/config.py`.
 
 ### Uso de herramientas de IA
 
