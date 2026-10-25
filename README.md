@@ -41,7 +41,7 @@ proyecto-nem-paes/
 └── src/                     # código reutilizable de los notebooks
     ├── config.py            # rutas, IDs de Drive, parámetros y etiquetas
     ├── carga.py             # lectura de los CSV directo desde Google Drive
-    ├── limpieza.py          # Decisiones 2 a 6
+    ├── limpieza.py          # Decisiones 2 a 4
     ├── muestra.py           # muestra analítica y definición de las brechas
     ├── estadistica.py       # resúmenes, varianza entre colegios, V de Cramér,
     │                        # tasas de acceso

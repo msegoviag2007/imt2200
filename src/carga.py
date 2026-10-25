@@ -7,12 +7,15 @@ from src.config import ANIOS, IDS_DRIVE, TABLAS, URL_DRIVE
 def leer_csv(clave: str) -> pd.DataFrame:
     """Lee directo desde Google Drive un CSV como 'IP-2026'.
 
-    Los CSV del MINEDUC usan ';' como separador y coma decimal. No se guarda
-    ninguna copia local: pandas descarga el archivo a memoria y lo lee.
+    Los CSV del MINEDUC usan ';' como separador y coma decimal. Los nombres
+    de columnas se limpian (sin BOM ni espacios, en mayúsculas) para que
+    sean iguales en todos los años.
     """
     url = URL_DRIVE.format(IDS_DRIVE[clave])
     print(f'Leyendo {clave} desde Google Drive ...')
-    return pd.read_csv(url, sep=';', decimal=',', low_memory=False)
+    df = pd.read_csv(url, sep=';', decimal=',', low_memory=False)
+    df.columns = df.columns.str.replace('﻿', '').str.strip().str.upper()
+    return df
 
 
 def cargar_tablas(anios: list[int] = ANIOS
@@ -26,25 +29,13 @@ def cargar_tablas(anios: list[int] = ANIOS
     return tablas
 
 
-def normalizar_columnas(df: pd.DataFrame) -> None:
-    """Quita BOM y espacios y pasa a mayúsculas los nombres (in place)."""
-    df.columns = (df.columns.str.replace('﻿', '', regex=False)
-                  .str.strip().str.upper())
-
-
 def comparar_columnas(tabla: dict[int, pd.DataFrame], sigla: str,
                       referencia: int = 2026) -> None:
-    """Imprime las columnas que difieren del año de referencia (resumido)."""
+    """Imprime cuántas columnas faltan o sobran respecto del año 2026."""
     columnas_ref = set(tabla[referencia].columns)
     for anio, df in tabla.items():
-        if anio == referencia:
-            continue
-        actuales = set(df.columns)
-        faltan = sorted(columnas_ref - actuales)
-        sobran = sorted(actuales - columnas_ref)
-        if not faltan and not sobran:
-            print(f'{sigla}-{anio}: mismas columnas que {referencia}')
-            continue
-        print(f'{sigla}-{anio}: faltan {len(faltan)}, sobran {len(sobran)}')
-        print(f'    faltan: {faltan[:8]}{" ..." if len(faltan) > 8 else ""}')
-        print(f'    sobran: {sobran[:8]}{" ..." if len(sobran) > 8 else ""}')
+        faltan = sorted(columnas_ref - set(df.columns))
+        sobran = sorted(set(df.columns) - columnas_ref)
+        if anio != referencia and (faltan or sobran):
+            print(f'{sigla}-{anio}: faltan {len(faltan)} (ej.: {faltan[:3]}), '
+                  f'sobran {len(sobran)} (ej.: {sobran[:3]})')

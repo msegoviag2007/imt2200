@@ -1,8 +1,4 @@
-"""Rutas, fuentes de datos y constantes compartidas por los notebooks.
-
-Todos los parámetros que el equipo puede querer cambiar están aquí, para que
-los notebooks y los módulos usen siempre los mismos valores.
-"""
+"""Rutas, fuentes de datos y constantes compartidas por los notebooks."""
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -11,7 +7,6 @@ from pathlib import Path
 RAIZ: Path = Path(__file__).resolve().parents[1]
 DIR_DATOS_PROCESADOS: Path = RAIZ / 'data' / 'processed'
 DIR_IMGS: Path = RAIZ / 'imgs'
-
 ARCHIVO_PANEL: Path = DIR_DATOS_PROCESADOS / 'panel_completo.parquet'
 ARCHIVO_MUESTRA: Path = DIR_DATOS_PROCESADOS / 'muestra.parquet'
 
@@ -29,22 +24,18 @@ TABLAS: dict[str, str] = {
 }
 
 IDS_DRIVE: dict[str, str] = {
-    # A: Inscritos y puntajes
     'IP-2026': '1RurrECku8Ez_Rl3RlOfjP1SopxgpR6RC',
     'IP-2025': '1gAmWo_ujbhjJPr_vmWOhj-oXjycCk535',
     'IP-2024': '1gAx17O6USHw0AlXOsFSz9SFSG44TuUPY',
     'IP-2023': '1PcOS0fPcAMpwlunRqz9vJRHBwz1lTsLG',
-    # B: Socioeconómico
     'SD-2026': '1qAV7_q6Z07lsJGgRxlb0W92vSeZmSm06',
     'SD-2025': '1b3QBKylAHGgw0CcXJHY3DfacDTHYUEAU',
     'SD-2024': '1xx6zZNFkAwUC4qwhVe8zpB6qHie8M6Se',
     'SD-2023': '15quWF_o5R4OO2caH9rF6hmy8dbExnXVH',
-    # C: Postulantes y selección
     'PS-2026': '1F7cv0-gQLHbl2n7TvywUt9KedzVrr8fD',
     'PS-2025': '1DN-boiGtFXiL8_R9-c2j642ftp0fu25x',
     'PS-2024': '1TDi0q0l12_hGQTIC_f0X8zXGokq68tO1',
     'PS-2023': '188bcegEIs_quVaWDSQ0rc6zV4Q3kBJ96',
-    # D: Matrícula
     'M-2026': '1oUQx9Sd-VFLRmhKoM_gFQMARY1AJS4yx',
     'M-2025': '1uuj7y793AXdgiFhy5GFpqkAF_tqVgEWH',
     'M-2024': '1aCClSoUgHLtBOIKbzpOXi29zj2L8cieS',
@@ -60,15 +51,11 @@ URL_DRIVE: str = ('https://drive.usercontent.google.com/download?id={}'
 # (docs/libro_codigos_postulacion_2026.pdf, Anexo I): 24 = en lista de
 # seleccionados; 25 = en lista de espera; 26 = seleccionado en una
 # preferencia anterior. El resto son causales de postulación no válida.
-# Seleccionado: algún estado 24 o 26. El 26 implica haber quedado
-# seleccionado en una preferencia anterior; en PS-2023 hay 179 estudiantes
-# con 26 a los que les falta el registro del 24.
+# Seleccionado: algún estado 24 o 26 (en PS-2023 a veces falta el 24).
 ESTADOS_SELECCION: set[int] = {24, 26}
-# Postulación válida (efectiva, como la "P" de SITUACION_POSTULANTE):
-# seleccionado o en lista de espera.
-ESTADOS_VALIDOS: set[int] = ESTADOS_SELECCION | {25}
+# Postulación válida (como la "P" de SITUACION_POSTULANTE).
+ESTADOS_VALIDOS: set[int] = {24, 25, 26}
 
-COL_PREFERENCIA: str = 'ORDEN_PREF'
 # PS-2023 viene en formato ancho: para cada preferencia n (01 a 20) trae las
 # columnas COD_CARRERA_PREF_n, ESTADO_PREF_n, PTJE_PREF_n y LUGAR_PREF_n.
 N_PREFERENCIAS_ANCHO: int = 20
@@ -77,67 +64,64 @@ COLUMNAS_PREF_ANCHO: list[str] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Decisión 4: tipos de datos
+# Decisión 4: tipos de datos (columnas que se fuerzan a número)
 # ---------------------------------------------------------------------------
-PRUEBAS: list[str] = ['CLEC', 'MATE1', 'MATE2', 'HCSOC', 'CIEN']
-COLUMNAS_NUMERICAS: list[str] = [
-    'RBD', 'SEXO', 'ANYO_DE_EGRESO', 'PROMEDIO_NOTAS', 'PTJE_NEM',
-    'PTJE_RANKING', 'DEPENDENCIA', 'INGRESO_PERCAPITA_GRUPO_FA',
-    'CODIGO_ENS',
-] + [
-    f'{prueba}_{tipo}_{proceso}'
-    for prueba in PRUEBAS
-    for tipo in ('REG', 'INV')
-    for proceso in ('ACTUAL', 'ANTERIOR')
-]
-CODIGO_NO_RESPONDE_INGRESO: int = 99
-
-# ---------------------------------------------------------------------------
-# Decisión 5: egreso reciente
-# ---------------------------------------------------------------------------
-# El proceso de admisión t se rinde a fines del año t-1, por lo que los
-# egresados "del mismo año de rendición" tienen ANYO_DE_EGRESO = t - 1.
-EGRESO_OFFSET: int = 1
-
-# ---------------------------------------------------------------------------
-# Muestra analítica y EDA
-# ---------------------------------------------------------------------------
-# 'regular': REG_ACTUAL y, si no rindió regular, INV_ACTUAL.
-# 'cronologico': INV_ACTUAL (junio) si existe; si no, REG_ACTUAL.
-CRITERIO_RENDICION: str = 'regular'
-# Incluye a quienes rindieron Ciencias e Historia como grupo 'Ambas'.
-INCLUIR_AMBAS: bool = True
-ELECTIVAS: list[str] = ['Ciencias', 'Historia', 'Ambas']
-
 PRUEBAS_PAES: dict[str, str] = {
     'CLEC': 'Comp. Lectora',
     'MATE1': 'Matemática 1',
-    'MATE2': 'Matemática 2',
     'HCSOC': 'Historia y Cs. Sociales',
     'CIEN': 'Ciencias',
 }
+COLUMNAS_PUNTAJES: list[str] = [
+    'CLEC_REG_ACTUAL', 'CLEC_INV_ACTUAL', 'CLEC_REG_ANTERIOR',
+    'CLEC_INV_ANTERIOR', 'MATE1_REG_ACTUAL', 'MATE1_INV_ACTUAL',
+    'MATE1_REG_ANTERIOR', 'MATE1_INV_ANTERIOR', 'HCSOC_REG_ACTUAL',
+    'HCSOC_INV_ACTUAL', 'HCSOC_REG_ANTERIOR', 'HCSOC_INV_ANTERIOR',
+    'CIEN_REG_ACTUAL', 'CIEN_INV_ACTUAL', 'CIEN_REG_ANTERIOR',
+    'CIEN_INV_ANTERIOR',
+]
+COLUMNAS_NUMERICAS: list[str] = [
+    'RBD', 'CODIGO_ENS', 'DEPENDENCIA', 'SEXO', 'ANYO_DE_EGRESO',
+    'PROMEDIO_NOTAS', 'PTJE_NEM', 'INGRESO_PERCAPITA_GRUPO_FA',
+] + COLUMNAS_PUNTAJES
+CODIGO_NO_RESPONDE_INGRESO: int = 99
+
+# Columnas que el notebook 01 guarda en el panel para el EDA.
+COLUMNAS_PANEL: list[str] = [
+    'MRUN', 'ANIO', 'RBD', 'CODIGO_ENS', 'DEPENDENCIA', 'RAMA_EDUCACIONAL',
+    'SEXO', 'ANYO_DE_EGRESO', 'PROMEDIO_NOTAS', 'PTJE_NEM',
+    'INGRESO_PERCAPITA_GRUPO_FA', 'postulo', 'postulacion_valida',
+    'seleccionado', 'ptje_ponderado_max', 'matriculado',
+] + COLUMNAS_PUNTAJES
+
+# ---------------------------------------------------------------------------
+# Muestra analítica
+# ---------------------------------------------------------------------------
+# El proceso de admisión t se rinde a fines del año t - 1: los egresados
+# "del año de rendición" tienen ANYO_DE_EGRESO = ANIO - 1.
+EGRESO_OFFSET: int = 1
+ELECTIVAS: list[str] = ['Ciencias', 'Historia', 'Ambas']
 
 # Códigos de enseñanza media para niños y jóvenes (libro de códigos de
 # Inscritos 2026, Anexo II). Los demás (x60 a x63 y 963) son educación de
 # adultos; quienes validan o reconocen estudios (H3, H4) no traen código.
 CODIGOS_ENS_REGULAR: list[int] = [310, 410, 510, 610, 710, 810, 910]
+# RBD 99999: código no documentado en los libros de códigos (no es un
+# colegio); se excluye con el filtro de educación regular.
+RBD_SIN_ESTABLECIMIENTO: int = 99999
 
-COLUMNAS_EDA: list[str] = [
-    'MRUN', 'ANIO', 'RBD', 'CODIGO_ENS', 'DEPENDENCIA', 'RAMA_EDUCACIONAL',
-    'SEXO',
-    'ANYO_DE_EGRESO', 'PROMEDIO_NOTAS', 'PTJE_NEM', 'PTJE_RANKING',
-    'INGRESO_PERCAPITA_GRUPO_FA', 'postulo', 'postulacion_valida',
-    'seleccionado', 'matriculado',
-] + [f'{p}_{t}_ACTUAL' for p in PRUEBAS_PAES for t in ('REG', 'INV')]
-
-# Columnas que el notebook 01 guarda para el EDA (incluye las del proceso
-# anterior, usadas en el diagnóstico de "primera rendición").
-COLUMNAS_PANEL: list[str] = COLUMNAS_EDA + ['egresado_reciente'] + [
-    f'{p}_{t}_ANTERIOR' for p in PRUEBAS_PAES for t in ('REG', 'INV')
+# Columnas que el notebook 02 guarda en muestra.parquet para el modelamiento.
+COLUMNAS_MUESTRA: list[str] = [
+    'MRUN', 'ANIO', 'RBD', 'dependencia', 'decil', 'decil_num', 'sexo',
+    'modalidad', 'electiva', 'PROMEDIO_NOTAS', 'PTJE_NEM', 'PAES_electiva',
+    'CLEC_1ra', 'MATE1_1ra', 'NEM_z', 'PAES_z', 'brecha', 'brecha_cond',
+    'brecha_CLEC', 'brecha_MATE1', 'postulo', 'postulacion_valida',
+    'seleccionado', 'matriculado', 'ptje_ponderado_max',
 ]
 
-# Códigos de DEPENDENCIA según el libro de códigos de Inscritos 2026
-# (docs/libro_codigos_inscritos_2026.pdf, sección 1.2).
+# ---------------------------------------------------------------------------
+# Etiquetas (libro de códigos de Inscritos 2026, sección 1.2)
+# ---------------------------------------------------------------------------
 DEPENDENCIA_ETIQUETAS: dict[int, str] = {
     1: 'Municipal',             # Corporación Municipal
     2: 'Municipal',             # Municipal
@@ -148,23 +132,19 @@ DEPENDENCIA_ETIQUETAS: dict[int, str] = {
 }
 ORDEN_DEPENDENCIA: list[str] = [
     'Municipal', 'SLEP', 'Part. subvencionado', 'Adm. delegada',
-    'Part. pagado', 'Sin dato',
+    'Part. pagado',
 ]
-SEXO_ETIQUETAS: dict[int, str] = {1: 'Hombre', 2: 'Mujer'}  # VERIFICAR
+# Dependencias que se grafican como líneas (Adm. delegada tiene pocos casos).
+DEPENDENCIAS_LINEAS: list[str] = [
+    'Municipal', 'SLEP', 'Part. subvencionado', 'Part. pagado',
+]
+SEXO_ETIQUETAS: dict[int, str] = {1: 'Hombre', 2: 'Mujer'}
 MODALIDAD_ETIQUETAS: dict[str, str] = {
     'H': 'Científico-humanista',
     'T': 'Técnico-profesional',
 }
 ORDEN_DECIL: list[str] = [str(d) for d in range(1, 11)] + ['No responde']
 
-# RBD 99999: código no documentado en los libros de códigos 2026 (no es un
-# colegio). Son 12 casos en la muestra, excluidos por el filtro de educación
-# regular en establecimiento identificado.
-RBD_SIN_ESTABLECIMIENTO: int = 99999
-
-# Tamaños mínimos para no graficar promedios con muy pocas observaciones.
+# Tamaños mínimos para no mostrar promedios con muy pocas observaciones.
 MIN_N_CELDA: int = 30
 MIN_ESTUDIANTES_COLEGIO: int = 10
-
-# Guarda en imgs/ cada figura que se muestra con graficos.mostrar().
-GUARDAR_FIGURAS: bool = True
