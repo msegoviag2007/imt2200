@@ -34,10 +34,13 @@ proyecto-nem-paes/
 ├── data/
 │   └── processed/           # panel_completo.parquet y muestra.parquet (no se suben)
 ├── docs/                    # propuesta, retroalimentación y libros de códigos 2026
-├── imgs/                    # figuras (.png) y tablas (.csv) generadas por el EDA
+├── imgs/                    # figuras (.png) y tablas (.csv) de los notebooks
 ├── notebooks/
 │   ├── 01_carga_y_limpieza.ipynb
-│   └── 02_eda.ipynb
+│   ├── 02_eda.ipynb
+│   ├── 03_modelamiento.ipynb
+│   ├── 04_acceso_por_etapas.ipynb
+│   └── 05_sensibilidad_y_sintesis.ipynb
 └── src/                     # código reutilizable de los notebooks
     ├── config.py            # rutas, IDs de Drive, parámetros y etiquetas
     ├── carga.py             # lectura de los CSV directo desde Google Drive
@@ -45,7 +48,9 @@ proyecto-nem-paes/
     ├── muestra.py           # muestra analítica y definición de las brechas
     ├── estadistica.py       # resúmenes, varianza entre colegios, V de Cramér,
     │                        # tasas de acceso
-    └── graficos.py          # estilo y guardado de figuras
+    ├── graficos.py          # estilo y guardado de figuras
+    └── modelos.py           # VIF, modelo jerárquico (MixedLM), ICC y
+                             # regresiones logísticas del acceso
 ```
 
 ### Cómo ejecutar
@@ -56,6 +61,9 @@ Los notebooks se corren **en orden**; cada uno deja un archivo que usa el siguie
 |---|---|---|
 | `01_carga_y_limpieza` | 16 CSV desde Google Drive | `data/processed/panel_completo.parquet` |
 | `02_eda` | `panel_completo.parquet` | `data/processed/muestra.parquet` e `imgs/*.png` |
+| `03_modelamiento` | `muestra.parquet` | VIF, modelo jerárquico e ICC (`imgs/mod_*.png`) |
+| `04_acceso_por_etapas` | `muestra.parquet` | Modelos logísticos del acceso (`imgs/acc_*.png`) |
+| `05_sensibilidad_y_sintesis` | `muestra.parquet` | Sensibilidad, síntesis final y fuentes (`imgs/sen_*.png`) |
 
 **Local (Jupyter / VS Code)**, con un entorno virtual en la carpeta `.venv/`
 (ignorada por git):
@@ -66,6 +74,9 @@ python -m venv .venv
 pip install -r requirements.txt
 jupyter lab notebooks/
 ```
+
+Para reproducir el proyecto de principio a fin se ejecutan los cinco notebooks en
+orden. `01` lee los datos desde Google Drive, así que requiere conexión a internet.
 
 ### Uso de herramientas de IA
 
