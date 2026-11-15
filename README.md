@@ -41,21 +41,19 @@ proyecto-nem-paes/
 │   ├── 03_modelamiento.ipynb
 │   ├── 04_acceso_por_etapas.ipynb
 │   └── 05_sensibilidad_y_sintesis.ipynb
-└── src/                     # código reutilizable de los notebooks
-    ├── config.py            # rutas, IDs de Drive, parámetros y etiquetas
-    ├── carga.py             # lectura de los CSV directo desde Google Drive
-    ├── limpieza.py          # Decisiones 2 a 4
-    ├── muestra.py           # muestra analítica y definición de las brechas
-    ├── estadistica.py       # resúmenes, varianza entre colegios, V de Cramér,
-    │                        # tasas de acceso
-    ├── graficos.py          # estilo y guardado de figuras
-    └── modelos.py           # VIF, modelo jerárquico (MixedLM), ICC y
-                             # regresiones logísticas del acceso
+└── src/
+    └── funciones.py         # funciones que usan varios notebooks: estilo y
+                             # guardado de figuras, puntajes z, preparación
+                             # de datos, coeficientes, odds ratios, ICC y
+                             # contraste SLEP - Municipal
 ```
 
 ### Cómo ejecutar
 
 Los notebooks se corren **en orden**; cada uno deja un archivo que usa el siguiente.
+Se ejecutan **desde la carpeta `notebooks/`**, porque usan rutas relativas a ella
+(`../data/`, `../imgs/` y `../src/`); es lo que hacen por defecto Jupyter y VS Code
+al abrir un notebook.
 
 | Notebook | Entrada | Salida |
 |---|---|---|
