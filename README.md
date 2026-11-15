@@ -5,7 +5,7 @@
 
 ### ¿Para qué es este repositorio?
 
-En este repositorio recopilaremos de manera grupal los archivos que elaboremos durante el curso de Introducción a Ciencia de Datos en su edición 2026-2. Ya sean tareas, desarrollos o proyectos, subiremos lo que consideremos necesario dentro de este repositorio, somos parte de la única sección del curso :)
+En este repositorio recopilaremos de manera grupal los archivos que elaboremos durante el curso de Introducción a Ciencia de Datos en su edición 2026-2, principalmente el Proyecto Semestral. Subiremos lo que consideremos necesario dentro de este repositorio. Somos parte de la única sección del curso :)
 
 ### Acerca de nosotros
 
@@ -32,7 +32,7 @@ proyecto-nem-paes/
 ├── requirements.txt
 ├── .gitignore
 ├── data/
-│   └── processed/           # panel_completo.parquet y muestra.parquet (no se suben)
+│   └── processed/           # panel_completo.parquet y muestra.parquet
 ├── docs/                    # propuesta, retroalimentación y libros de códigos 2026
 ├── imgs/                    # figuras (.png) y tablas (.csv) de los notebooks
 ├── notebooks/
@@ -51,9 +51,7 @@ proyecto-nem-paes/
 ### Cómo ejecutar
 
 Los notebooks se corren **en orden**; cada uno deja un archivo que usa el siguiente.
-Se ejecutan **desde la carpeta `notebooks/`**, porque usan rutas relativas a ella
-(`../data/`, `../imgs/` y `../src/`); es lo que hacen por defecto Jupyter y VS Code
-al abrir un notebook.
+Se ejecutan **desde la carpeta `notebooks/`**.
 
 | Notebook | Entrada | Salida |
 |---|---|---|
@@ -63,8 +61,8 @@ al abrir un notebook.
 | `04_acceso_por_etapas` | `muestra.parquet` | Modelos logísticos del acceso (`imgs/acc_*.png`) |
 | `05_sensibilidad_y_sintesis` | `muestra.parquet` | Sensibilidad, síntesis final y fuentes (`imgs/sen_*.png`) |
 
-**Local (Jupyter / VS Code)**, con un entorno virtual en la carpeta `.venv/`
-(ignorada por git):
+**Local**: con un entorno virtual en la carpeta `.venv/`
+:
 
 ```bash
 python -m venv .venv
@@ -81,6 +79,6 @@ orden. `01` lee los datos desde Google Drive, así que requiere conexión a inte
 En este proyecto se usó Claude (Anthropic) como apoyo en la escritura,
 simplificación y depuración del código, en la organización del repositorio y en
 la documentación. También se usó para revisar resultados y proponer
-alternativas metodológicas, como la brecha condicional, que el equipo evaluó
+alternativas metodológicas, como la brecha condicional, que como grupo evaluamos
 antes de adoptarlas. Todas las decisiones del análisis fueron revisadas y
-aprobadas por el equipo.
+aprobadas por nosotros.
